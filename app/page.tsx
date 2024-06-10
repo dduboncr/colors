@@ -1,4 +1,3 @@
-import {Color} from './components/ColorItem';
 import {ListColors} from './components/ColorList';
 import {sql} from '@vercel/postgres';
 

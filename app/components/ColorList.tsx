@@ -1,9 +1,9 @@
 'use client';
 import React, {useState} from 'react';
-import ColorItem from './ColorItem';
+import {ColorItem} from './ColorItem';
 import AddColorForm from './AddColorForm';
 
-export const ListColors = ({colors, itemsPerPage = 5}) => {
+export const ListColors = ({colors, itemsPerPage = 5}: any) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [colorList, setColorList] = useState(colors);
@@ -54,22 +54,25 @@ export const ListColors = ({colors, itemsPerPage = 5}) => {
     const file = event.target.files[0];
     const reader = new FileReader();
 
-    reader.onload = (e) => {
-      setNewColor((prevColor) => ({
-        ...prevColor,
-        photo: e.target.result,
-      }));
+    reader.onload = (e: any) => {
+      setNewColor(
+        (prevColor) =>
+          ({
+            ...prevColor,
+            photo: e.target.result,
+          } as any)
+      );
     };
 
     reader.readAsDataURL(file);
   };
 
-  const handleAddColor = (event) => {
+  const handleAddColor = (event: any) => {
     event.preventDefault();
     const colorSequenceArray = newColor.colorSequence
       .split(',')
       .map((color) => color.trim());
-    setColorList((prevColors) => [
+    setColorList((prevColors: any) => [
       ...prevColors,
       {...newColor, colorSequence: colorSequenceArray},
     ]);

@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-const ColorItem = ({name, colorSequence, photo}) => {
+export const ColorItem = ({name, colorSequence, photo}) => {
   return (
     <div className="max-w-sm rounded overflow-hidden shadow-lg m-4">
       <div className="flex items-center px-6 py-4">
@@ -20,5 +20,3 @@ const ColorItem = ({name, colorSequence, photo}) => {
     </div>
   );
 };
-
-export default ColorItem;
