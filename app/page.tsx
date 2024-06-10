@@ -8,7 +8,7 @@ export type Logos = {
 };
 
 export default async function Home() {
-  const response = await fetch('http://localhost:3000/api/colors', {
+  const response = await fetch(`${process.env.URL}/api/colors`, {
     method: 'GET',
     cache: 'no-cache',
   });
