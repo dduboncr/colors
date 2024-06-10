@@ -1,16 +1,19 @@
 import {Color} from './components/ColorItem';
 import {ListColors} from './components/ColorList';
+import {sql} from '@vercel/postgres';
+
+type Logos = {
+  name: string;
+  colorSequence: string;
+  photoUrl: string;
+};
 
 export default async function Home() {
-  const data = await fetch('http://localhost:3000/api/colors', {
-    cache: 'no-cache',
-  });
-
-  const colors = await data.json();
+  const {rows} = await sql<Logos>`SELECT * from logos`;
 
   return (
     <div>
-      <ListColors colors={colors} itemsPerPage={10} />
+      <ListColors colors={rows} itemsPerPage={10} />
     </div>
   );
 }
