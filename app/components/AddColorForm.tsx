@@ -1,11 +1,15 @@
-import React from 'react';
+import React, {useState} from 'react';
+import {UploadButton} from '@/app/utils/uploadthing';
 
-const AddColorForm = ({
-  newColor,
-  handleInputChange,
-  handleAddColor,
-  handleImageChange,
-}) => {
+const AddColorForm = ({newColor, handleAddColor, setNewColor}) => {
+  const handleInputChange = (event) => {
+    const {name, value} = event.target;
+    setNewColor((prevColor) => ({
+      ...prevColor,
+      [name]: value,
+    }));
+  };
+
   return (
     <form className="w-full max-w-md mt-4" onSubmit={handleAddColor}>
       <div className="mb-4">
@@ -43,26 +47,34 @@ const AddColorForm = ({
         />
       </div>
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="photo"
-        >
-          Logo
-        </label>
-        <input
-          id="photo"
-          name="photo"
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="w-full p-2 border rounded"
+        <UploadButton
+          endpoint="imageUploader"
+          onClientUploadComplete={(res) => {
+            const photoUrl = res[0].url;
+
+            setNewColor((prevColor) => ({
+              ...prevColor,
+              photo: photoUrl,
+            }));
+
+            alert('Carga completada');
+          }}
+          onUploadError={(error: Error) => {
+            // Do something with the error.
+            alert(`ERROR! ${error.message}`);
+          }}
         />
       </div>
       <button
         type="submit"
-        className="px-4 py-2 bg-green-500 text-white rounded"
+        disabled={!newColor.name || !newColor.colorSequence || !newColor.photo}
+        className={`px-4 py-2 ${
+          !newColor.name || !newColor.colorSequence || !newColor.photo
+            ? 'disabled:opacity-50'
+            : ''
+        } bg-green-500 text-white rounded`}
       >
-        Añadir Color
+        Guardar
       </button>
     </form>
   );

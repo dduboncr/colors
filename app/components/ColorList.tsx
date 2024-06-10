@@ -2,6 +2,8 @@
 import React, {useState} from 'react';
 import {ColorItem} from './ColorItem';
 import AddColorForm from './AddColorForm';
+import {useRouter} from 'next/navigation';
+import {PaginationControls} from './PaginationControl';
 
 export const ListColors = ({colors, itemsPerPage = 5}: any) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,9 +12,11 @@ export const ListColors = ({colors, itemsPerPage = 5}: any) => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [newColor, setNewColor] = useState({
     name: '',
-    colorSequence: '',
-    photo: '',
+    colorsequence: '',
+    photourl: '',
   });
+
+  const router = useRouter();
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
@@ -42,98 +46,73 @@ export const ListColors = ({colors, itemsPerPage = 5}: any) => {
     setIsFormVisible(!isFormVisible);
   };
 
-  const handleInputChange = (event) => {
-    const {name, value} = event.target;
-    setNewColor((prevColor) => ({
-      ...prevColor,
-      [name]: value,
-    }));
-  };
-
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = (e: any) => {
-      setNewColor(
-        (prevColor) =>
-          ({
-            ...prevColor,
-            photo: e.target.result,
-          } as any)
-      );
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  const handleAddColor = (event: any) => {
+  const handleAddColor = async (event: any) => {
     event.preventDefault();
-    const colorSequenceArray = newColor.colorSequence
+    const colorSequenceArray = newColor.colorsequence
       .split(',')
       .map((color) => color.trim());
+
     setColorList((prevColors: any) => [
       ...prevColors,
-      {...newColor, colorSequence: colorSequenceArray},
+      {...newColor, colorsequence: colorSequenceArray},
     ]);
-    setNewColor({name: '', colorSequence: '', photo: ''});
+
+    await fetch('/api/colors', {
+      method: 'POST',
+      body: JSON.stringify(newColor),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    router.refresh();
+
+    setNewColor({name: '', colorsequence: '', photourl: ''});
     setIsFormVisible(false);
   };
 
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full max-w-md mb-4 flex justify-between items-center">
-        <input
-          id="search"
-          type="text"
-          placeholder="Buscar logos..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="w-full p-2 border rounded"
-        />
-        <button
-          onClick={toggleFormVisibility}
-          className="ml-4 px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Añadir Logo
-        </button>
-      </div>
       {isFormVisible ? (
         <AddColorForm
+          setNewColor={setNewColor}
           newColor={newColor}
-          handleInputChange={handleInputChange}
           handleAddColor={handleAddColor}
-          handleImageChange={handleImageChange}
         />
       ) : (
         <>
-          {currentColors.map((color, index) => (
-            <ColorItem
-              key={index}
-              name={color.name}
-              colorSequence={color.colorSequence}
-              photo={color.photo}
+          <div className="w-full max-w-md mb-6 flex justify-between items-center">
+            <input
+              id="search"
+              type="text"
+              placeholder="Buscar logos..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full p-2 border rounded"
             />
-          ))}
-          <div className="flex justify-between items-center w-full max-w-md mt-4">
             <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+              onClick={toggleFormVisibility}
+              className="ml-4 px-4 py-2 bg-blue-500 text-white rounded"
             >
-              Atrás
-            </button>
-            <span className="px-4 py-2">
-              Página {currentPage} de {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-            >
-              Siguiente
+              Agregar Logo
             </button>
           </div>
+          {currentColors.map((color, index) => {
+            return (
+              <ColorItem
+                key={index}
+                name={color.name}
+                colorsequence={color.colorsequences}
+                photourl={color.photourl}
+              />
+            );
+          })}
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            handlePrevPage={handlePrevPage}
+            handleNextPage={handleNextPage}
+          />
         </>
       )}
     </div>
