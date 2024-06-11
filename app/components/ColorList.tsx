@@ -70,7 +70,7 @@ export const ListColors = ({colors, itemsPerPage = 5}) => {
       cache: 'no-cache',
     });
 
-    setNewColor({name: '', colorsequence: '', photourl: ''});
+    setNewColor({name: '', colorsequence: '', photourl: '', id: ''});
     setIsFormVisible(false);
     router.push('/');
   };
