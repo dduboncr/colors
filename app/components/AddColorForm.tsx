@@ -1,7 +1,9 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {UploadButton} from '@/app/utils/uploadthing';
+import {useRouter} from 'next/navigation';
 
 const AddColorForm = ({newColor, handleAddColor, setNewColor}) => {
+  const router = useRouter();
   const handleInputChange = (event) => {
     const {name, value} = event.target;
     setNewColor((prevColor) => ({

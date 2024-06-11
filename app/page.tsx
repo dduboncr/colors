@@ -1,10 +1,9 @@
 import {ListColors} from './components/ColorList';
-import {sql} from '@vercel/postgres';
 
 export type Logos = {
   name: string;
-  colorSequence: string;
-  photoUrl: string;
+  colorsequence: string;
+  photourl: string;
 };
 
 export default async function Home() {

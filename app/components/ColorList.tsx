@@ -4,8 +4,9 @@ import {ColorItem} from './ColorItem';
 import AddColorForm from './AddColorForm';
 import {useRouter} from 'next/navigation';
 import {PaginationControls} from './PaginationControl';
+import {Spinner} from './Spinner';
 
-export const ListColors = ({colors, itemsPerPage = 5}: any) => {
+export const ListColors = ({colors, itemsPerPage = 5}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [colorList, setColorList] = useState(colors);
@@ -14,7 +15,10 @@ export const ListColors = ({colors, itemsPerPage = 5}: any) => {
     name: '',
     colorsequence: '',
     photourl: '',
+    id: '',
   });
+
+  const [showList, setShowList] = useState(true);
 
   const router = useRouter();
 
@@ -46,13 +50,13 @@ export const ListColors = ({colors, itemsPerPage = 5}: any) => {
     setIsFormVisible(!isFormVisible);
   };
 
-  const handleAddColor = async (event: any) => {
+  const handleAddColor = async (event) => {
     event.preventDefault();
     const colorSequenceArray = newColor.colorsequence
       .split(',')
       .map((color) => color.trim());
 
-    setColorList((prevColors: any) => [
+    setColorList((prevColors) => [
       ...prevColors,
       {...newColor, colorsequence: colorSequenceArray},
     ]);
@@ -63,12 +67,26 @@ export const ListColors = ({colors, itemsPerPage = 5}: any) => {
       headers: {
         'Content-Type': 'application/json',
       },
+      cache: 'no-cache',
     });
-
-    router.refresh();
 
     setNewColor({name: '', colorsequence: '', photourl: ''});
     setIsFormVisible(false);
+    router.push('/');
+  };
+
+  const handleDeleteColor = async (id) => {
+    setShowList(false);
+    await fetch(`/api/colors?id=${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-cache',
+    });
+
+    router.push('/');
+    setShowList(true);
   };
 
   return (
@@ -81,32 +99,43 @@ export const ListColors = ({colors, itemsPerPage = 5}: any) => {
         />
       ) : (
         <>
-          <div className="w-full max-w-md mb-6 flex justify-between items-center">
-            <input
-              id="search"
-              type="text"
-              placeholder="Buscar logos..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="w-full p-2 border rounded"
-            />
-            <button
-              onClick={toggleFormVisibility}
-              className="ml-4 px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Agregar Logo
-            </button>
-          </div>
-          {currentColors.map((color, index) => {
-            return (
-              <ColorItem
-                key={index}
-                name={color.name}
-                colorsequence={color.colorsequences}
-                photourl={color.photourl}
+          <div className="w-full mt-4 max-w-md mb-6 flex items-">
+            <div>
+              <input
+                id="search"
+                type="text"
+                placeholder="Buscar logos..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full p-2 border rounded"
               />
-            );
-          })}
+            </div>
+
+            <div>
+              <button
+                onClick={toggleFormVisibility}
+                className="ml-4 px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Agregar Logo
+              </button>
+            </div>
+          </div>
+          {showList ? (
+            currentColors.map((color, index) => {
+              return (
+                <ColorItem
+                  key={index}
+                  name={color.name}
+                  colorsequence={color.colorsequence}
+                  photourl={color.photourl}
+                  id={color.id}
+                  handleDeleteColor={handleDeleteColor}
+                />
+              );
+            })
+          ) : (
+            <Spinner />
+          )}
           <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}
