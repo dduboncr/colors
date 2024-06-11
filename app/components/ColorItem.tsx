@@ -4,7 +4,7 @@ import Image from 'next/image';
 export const ColorItem = ({
   id,
   name,
-  colorsequence,
+  colorsequences,
   photourl,
   handleDeleteColor,
 }) => {
@@ -21,7 +21,7 @@ export const ColorItem = ({
 
         <div className="flex-grow">
           <div className="font-bold text-xl mb-2">{name}</div>
-          <p className="text-gray-700 text-base">{colorsequence}</p>
+          <p className="text-gray-700 text-base">{colorsequences}</p>
         </div>
 
         <button

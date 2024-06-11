@@ -2,7 +2,7 @@ import {ListColors} from './components/ColorList';
 
 export type Logos = {
   name: string;
-  colorsequence: string;
+  colorsequences: string;
   photourl: string;
 };
 

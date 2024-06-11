@@ -126,7 +126,7 @@ export const ListColors = ({colors, itemsPerPage = 5}) => {
                 <ColorItem
                   key={index}
                   name={color.name}
-                  colorsequence={color.colorsequence}
+                  colorsequences={color.colorsequences}
                   photourl={color.photourl}
                   id={color.id}
                   handleDeleteColor={handleDeleteColor}
