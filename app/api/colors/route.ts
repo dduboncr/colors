@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const offset = searchParams.get('offset') || '0';
   const search = searchParams.get('search') || '';
 
-  const logsQuery = sql<Logos>`SELECT UPPER(name) as name, colorsequences, photourl FROM logos WHERE name LIKE ${
+  const logsQuery = sql<Logos>`SELECT id,UPPER(name) as name, colorsequences, photourl FROM logos WHERE name LIKE ${
     '%' + search.toUpperCase() + '%'
   } LIMIT ${limit} OFFSET ${offset}`;
 

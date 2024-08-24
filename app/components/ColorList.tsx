@@ -60,6 +60,28 @@ const addColor = async (newColor) => {
   });
 };
 
+const deleteColor = async (id) => {
+  await fetch(`/api/colors?id=${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    cache: 'no-cache',
+  });
+};
+
+const useDeleteColor = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteColor,
+    onSuccess: () => queryClient.invalidateQueries({queryKey: ['colors']}),
+    onError: (error) => {
+      console.log('Error deleting color', error);
+    },
+  });
+};
+
 const useAddColor = () => {
   const queryClient = useQueryClient();
 
@@ -90,6 +112,8 @@ export const ListColors = ({itemsPerPage = 5}) => {
   });
 
   const addColor = useAddColor();
+
+  const deleteColor = useDeleteColor();
 
   const {
     data: colorList,
@@ -153,16 +177,14 @@ export const ListColors = ({itemsPerPage = 5}) => {
 
   const handleDeleteColor = async (id) => {
     setShowList(false);
-    await fetch(`/api/colors?id=${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
+    deleteColor.mutate(id, {
+      onSuccess: () => {
+        setShowList(true);
       },
-      cache: 'no-cache',
+      onError: (error) => {
+        console.log('Error deleting color', error);
+      },
     });
-
-    router.push('/');
-    setShowList(true);
   };
 
   return (
