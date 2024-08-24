@@ -27,9 +27,7 @@ const getColors = async (
   limit: number = 5,
   offset: number = 0
 ) => {
-  let url = `${
-    process.env.URL || 'http://localhost:3000'
-  }/api/colors?limit=${limit}&offset=${offset}`;
+  let url = `/api/colors?limit=${limit}&offset=${offset}`;
 
   console.log('url', url);
   if (!!searchTerm) {
@@ -51,7 +49,7 @@ const getColors = async (
 };
 
 const addColor = async (newColor) => {
-  const url = `${process.env.URL || 'http://localhost:3000'}/api/colors`;
+  const url = `/api/colors`;
 
   await fetch(url, {
     method: 'POST',
@@ -64,9 +62,7 @@ const addColor = async (newColor) => {
 };
 
 const deleteColor = async (id: number) => {
-  const url = `${
-    process.env.URL || 'http://localhost:3000'
-  }/api/colors?id=${id}`;
+  const url = `/api/colors?id=${id}`;
   await fetch(url, {
     method: 'DELETE',
     headers: {
