@@ -1,9 +1,11 @@
-import React from 'react';
 import {UploadButton} from '@/app/utils/uploadthing';
-import {useRouter} from 'next/navigation';
 
-const AddColorForm = ({newColor, handleAddColor, setNewColor}) => {
-  const router = useRouter();
+const AddColorForm = ({
+  newColor,
+  handleAddColor,
+  setNewColor,
+  setIsFormVisible,
+}) => {
   const handleInputChange = (event) => {
     const {name, value} = event.target;
     setNewColor((prevColor) => ({
@@ -77,6 +79,23 @@ const AddColorForm = ({newColor, handleAddColor, setNewColor}) => {
         } bg-green-500 text-white rounded`}
       >
         Guardar
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setNewColor({
+            name: '',
+            colorsequence: '',
+            photourl: '',
+            id: '',
+          });
+
+          setIsFormVisible(false);
+        }}
+        className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
+      >
+        Cancelar
       </button>
     </form>
   );

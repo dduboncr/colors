@@ -24,13 +24,6 @@ export async function GET(request: Request) {
 
   const hasMore = countQueryResult.rows[0].count > +offset + +limit;
 
-  console.log({
-    limit,
-    offset,
-    count: countQueryResult.rows[0].count,
-    hasMore,
-    logsQueyResult,
-  });
   return Response.json({
     rows: logsQueyResult.rows ?? [],
     count: countQueryResult.rows[0].count,
@@ -59,17 +52,13 @@ export async function DELETE(request: Request) {
 
   if (!log) return Response.json({message: 'Logo no encontrado'});
 
-  console.log('log', log);
   const photoKey = log.photourl.split('/').pop();
 
-  console.log('photoKey', photoKey);
   if (photoKey) {
     await utapi.deleteFiles(photoKey);
-    console.log('photo deleted');
   }
 
   await sql<Logos>`DELETE FROM logos WHERE id = ${id}`;
 
-  console.log('Logo eliminado');
   return Response.json({message: 'Logo eliminado'});
 }

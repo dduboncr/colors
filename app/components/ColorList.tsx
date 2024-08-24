@@ -4,8 +4,10 @@ import {useRouter} from 'next/navigation';
 import React, {useEffect, useState} from 'react';
 import AddColorForm from './AddColorForm';
 import {ColorItem} from './ColorItem';
+import {DeleteButton} from './DeleteButton';
 import {PaginationControls} from './PaginationControl';
 import {Spinner} from './Spinner';
+import {ViewButton} from './ViewButton';
 
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -29,7 +31,6 @@ const getColors = async (
 ) => {
   let url = `/api/colors?limit=${limit}&offset=${offset}`;
 
-  console.log('url', url);
   if (!!searchTerm) {
     url += `&search=${searchTerm}`;
   }
@@ -196,10 +197,11 @@ export const ListColors = ({itemsPerPage = 5}) => {
           setNewColor={setNewColor}
           newColor={newColor}
           handleAddColor={handleAddColor}
+          setIsFormVisible={setIsFormVisible}
         />
       ) : (
         <>
-          <div className="w-full mt-4 max-w-md mb-6 flex items-">
+          <div className="w-full mt-4 max-w-md mb-6 flex items-center">
             <div>
               <input
                 id="search"
@@ -223,14 +225,23 @@ export const ListColors = ({itemsPerPage = 5}) => {
           {showList ? (
             colorList.rows.map((color, index) => {
               return (
-                <ColorItem
-                  key={index}
-                  name={color.name}
-                  colorsequences={color.colorsequences}
-                  photourl={color.photourl}
-                  id={color.id}
-                  handleDeleteColor={handleDeleteColor}
-                />
+                <>
+                  <div className="max-w-md w-full rounded overflow-hidden shadow-lg m-4 w-full">
+                    <div className="flex-none w-full flex items-center px-6 py-4">
+                      <ColorItem
+                        key={index}
+                        name={color.name}
+                        colorsequences={color.colorsequences}
+                        photourl={color.photourl}
+                      />
+                      <ViewButton id={color.id} />
+                      <DeleteButton
+                        id={color.id}
+                        handleDeleteColor={handleDeleteColor}
+                      />
+                    </div>
+                  </div>
+                </>
               );
             })
           ) : (
