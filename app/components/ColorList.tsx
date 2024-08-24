@@ -1,15 +1,86 @@
 'use client';
-import React, {useState} from 'react';
-import {ColorItem} from './ColorItem';
-import AddColorForm from './AddColorForm';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useRouter} from 'next/navigation';
+import React, {useEffect, useState} from 'react';
+import AddColorForm from './AddColorForm';
+import {ColorItem} from './ColorItem';
 import {PaginationControls} from './PaginationControl';
 import {Spinner} from './Spinner';
 
-export const ListColors = ({colors, itemsPerPage = 5}) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [colorList, setColorList] = useState(colors);
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+const getColors = async (
+  searchTerm: string,
+  limit: number = 5,
+  offset: number = 0
+) => {
+  let url = `${
+    process.env.URL || 'http://localhost:3000'
+  }/api/colors?limit=${limit}&offset=${offset}`;
+
+  if (!!searchTerm) {
+    url += `&search=${searchTerm}`;
+  }
+
+  const response = await fetch(url, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    console.log('Failed to fetch colors');
+    throw new Error('Failed to fetch colors');
+  }
+
+  const colorsResponse = await response.json();
+
+  return colorsResponse;
+};
+
+const addColor = async (newColor) => {
+  await fetch('/api/colors', {
+    method: 'POST',
+    body: JSON.stringify(newColor),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    cache: 'no-cache',
+  });
+};
+
+const useAddColor = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: addColor,
+    onSuccess: () => queryClient.invalidateQueries({queryKey: ['colors']}),
+    onError: (error) => {
+      console.log('Error adding color', error);
+    },
+  });
+};
+
+export const ListColors = ({itemsPerPage = 5}) => {
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 500);
+  const [page, setCurrentPage] = useState(1);
+  const [offset, setOffset] = useState(0);
+  const [limit, setLimit] = useState(itemsPerPage);
+
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [newColor, setNewColor] = useState({
     name: '',
@@ -18,32 +89,48 @@ export const ListColors = ({colors, itemsPerPage = 5}) => {
     id: '',
   });
 
+  const addColor = useAddColor();
+
+  const {
+    data: colorList,
+    error,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['colors', debouncedSearch, limit, offset, page],
+    queryFn: ({signal}) => {
+      return getColors(debouncedSearch, limit, offset);
+    },
+  });
+
+  React.useEffect(() => {
+    if (colorList?.hasMore) {
+      queryClient.prefetchQuery({
+        queryKey: ['colors', search, limit, offset + limit],
+        queryFn: () => getColors(search, limit, offset + limit),
+      });
+    }
+  }, [colorList, colorList?.hasMore, search, limit, offset, page, queryClient]);
+
   const [showList, setShowList] = useState(true);
 
   const router = useRouter();
 
   const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setSearch(event.target.value);
   };
 
-  const filteredColors = colorList.filter((color) =>
-    color.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentColors = filteredColors.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-  const totalPages = Math.ceil(filteredColors.length / itemsPerPage);
+  if (isLoading) return;
+  if (isError) return <div>Error: {error.message}</div>;
 
   const handlePrevPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
+    setCurrentPage((prev) => Math.max(prev - 1, 0));
+    setOffset((prev) => prev - offset);
   };
 
   const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    setCurrentPage((prev) => Math.min(prev + 1, itemsPerPage));
+    setOffset((prev) => prev + limit);
   };
 
   const toggleFormVisibility = () => {
@@ -52,27 +139,16 @@ export const ListColors = ({colors, itemsPerPage = 5}) => {
 
   const handleAddColor = async (event) => {
     event.preventDefault();
-    const colorSequenceArray = newColor.colorsequence
-      .split(',')
-      .map((color) => color.trim());
 
-    setColorList((prevColors) => [
-      ...prevColors,
-      {...newColor, colorsequence: colorSequenceArray},
-    ]);
-
-    await fetch('/api/colors', {
-      method: 'POST',
-      body: JSON.stringify(newColor),
-      headers: {
-        'Content-Type': 'application/json',
+    addColor.mutate(newColor, {
+      onSuccess: () => {
+        toggleFormVisibility();
+        router.push('/');
       },
-      cache: 'no-cache',
+      onError: (error) => {
+        console.log('Error adding color', error);
+      },
     });
-
-    setNewColor({name: '', colorsequence: '', photourl: '', id: ''});
-    setIsFormVisible(false);
-    router.push('/');
   };
 
   const handleDeleteColor = async (id) => {
@@ -105,7 +181,7 @@ export const ListColors = ({colors, itemsPerPage = 5}) => {
                 id="search"
                 type="text"
                 placeholder="Buscar logos..."
-                value={searchTerm}
+                value={search}
                 onChange={handleSearch}
                 className="w-full p-2 border rounded"
               />
@@ -121,7 +197,7 @@ export const ListColors = ({colors, itemsPerPage = 5}) => {
             </div>
           </div>
           {showList ? (
-            currentColors.map((color, index) => {
+            colorList.rows.map((color, index) => {
               return (
                 <ColorItem
                   key={index}
@@ -137,8 +213,8 @@ export const ListColors = ({colors, itemsPerPage = 5}) => {
             <Spinner />
           )}
           <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
+            currentPage={page}
+            totalPages={Math.ceil(colorList?.count / limit)}
             handlePrevPage={handlePrevPage}
             handleNextPage={handleNextPage}
           />

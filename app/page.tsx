@@ -6,17 +6,26 @@ export type Logos = {
   photourl: string;
 };
 
-export default async function Home() {
+const getColors = async () => {
   const response = await fetch(`${process.env.URL}/api/colors`, {
     method: 'GET',
     cache: 'no-cache',
   });
 
+  if (!response.ok) {
+    console.log('Failed to fetch colors');
+    throw new Error('Failed to fetch colors');
+  }
+
   const colors = await response.json();
 
+  return colors;
+};
+
+export default async function Home() {
   return (
     <div>
-      <ListColors colors={colors} itemsPerPage={10} />
+      <ListColors itemsPerPage={5} />
     </div>
   );
 }

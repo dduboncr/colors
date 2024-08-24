@@ -2,11 +2,40 @@ import {Logos} from '@/app/page';
 
 import {sql} from '@vercel/postgres';
 import {utapi} from '../uploadthing/core';
-import {NextApiRequest} from 'next';
 
-export async function GET() {
-  const {rows} = await sql<Logos>`SELECT * FROM logos`;
-  return Response.json(rows);
+export async function GET(request: Request) {
+  const {searchParams} = new URL(request.url);
+  const limit = searchParams.get('limit') || '5';
+  const offset = searchParams.get('offset') || '0';
+  const search = searchParams.get('search') || '';
+
+  const logsQuery = sql<Logos>`SELECT UPPER(name) as name, colorsequences, photourl FROM logos WHERE name LIKE ${
+    '%' + search.toUpperCase() + '%'
+  } LIMIT ${limit} OFFSET ${offset}`;
+
+  const countQuery = sql<{
+    count: number;
+  }>`SELECT COUNT(*) as count FROM logos`;
+
+  const [logsQueyResult, countQueryResult] = await Promise.all([
+    logsQuery,
+    countQuery,
+  ]);
+
+  const hasMore = countQueryResult.rows[0].count > +offset + +limit;
+
+  console.log({
+    limit,
+    offset,
+    count: countQueryResult.rows[0].count,
+    hasMore,
+    logsQueyResult,
+  });
+  return Response.json({
+    rows: logsQueyResult.rows ?? [],
+    count: countQueryResult.rows[0].count,
+    hasMore,
+  });
 }
 
 export async function POST(request: Request) {

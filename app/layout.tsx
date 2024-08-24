@@ -1,8 +1,6 @@
-import type {Metadata} from 'next';
-import {Inter} from 'next/font/google';
+import {Metadata} from 'next';
 import './globals.css';
-
-const inter = Inter({subsets: ['latin']});
+import {ReactQueryClientProvider} from './reactQueryProvider';
 
 export const metadata: Metadata = {
   title: 'Logos',
@@ -16,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <ReactQueryClientProvider>
+        <body>{children}</body>
+      </ReactQueryClientProvider>
     </html>
   );
 }
